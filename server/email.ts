@@ -38,10 +38,14 @@ function formatQuizAnswers(answers?: QuizAnswers): string {
     return '';
   }
   
-  let result = '\n--- QUIZ-ANTWORTEN ---\n';
+  let result = '\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+  result += '📋 QUIZ-ANTWORTEN\n';
+  result += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+  
   for (const [questionId, answer] of Object.entries(answers)) {
     const questionText = questionTexts[Number(questionId)] || `Frage ${questionId}`;
-    result += `${questionText}: ${answer}\n`;
+    result += `❓ ${questionText}\n`;
+    result += `➡️ ${answer}\n\n`;
   }
   return result;
 }
