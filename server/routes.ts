@@ -10,16 +10,22 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
-  // Lead capture endpoint
   app.post("/api/leads", async (req, res) => {
     try {
       const validatedData = insertLeadSchema.parse(req.body);
       
-      // Check if email already exists (only if email provided)
       if (validatedData.email) {
         const existingLead = await storage.getLeadByEmail(validatedData.email);
         if (existingLead) {
-          // Return success even if lead exists (don't reveal this to frontend)
+          const source = req.body.source || 'Quiz Funnel';
+          sendLeadNotification({
+            name: existingLead.name,
+            email: existingLead.email,
+            phone: existingLead.phone,
+            source: source + ' (Wiederholung)',
+            quizAnswers: req.body.quizAnswers
+          });
+          
           return res.status(200).json({ 
             success: true, 
             message: "Lead registered",
@@ -39,13 +45,15 @@ export async function registerRoutes(
         utmContent: lead.utmContent,
       });
       
-      // Send email notification
+      console.log("Quiz answers received:", JSON.stringify(req.body.quizAnswers));
+      
       const source = req.body.source || (lead.utmSource ? `UTM: ${lead.utmSource}` : 'Quiz Funnel');
       sendLeadNotification({
         name: lead.name,
         email: lead.email,
         phone: lead.phone,
-        source: source
+        source: source,
+        quizAnswers: req.body.quizAnswers
       });
       
       res.status(201).json({ 
@@ -69,7 +77,6 @@ export async function registerRoutes(
     }
   });
 
-  // Get all leads (for admin purposes - could be protected later)
   app.get("/api/leads", async (req, res) => {
     try {
       const leads = await storage.getLeads();
