@@ -1,95 +1,51 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { insertLeadSchema } from "@shared/schema";
-import { z } from "zod";
-import { sendLeadNotification } from "./email";
+import { Resend } from 'resend';
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: Express
-): Promise<Server> {
-  
-  // Lead capture endpoint
-  app.post("/api/leads", async (req, res) => {
-    try {
-      const validatedData = insertLeadSchema.parse(req.body);
-      
-      // Check if email already exists (only if email provided)
-      if (validatedData.email) {
-        const existingLead = await storage.getLeadByEmail(validatedData.email);
-        if (existingLead) {
-          // Still send email notification for existing leads
-          const source = req.body.source || 'Quiz Funnel';
-          sendLeadNotification({
-            name: existingLead.name,
-            email: existingLead.email,
-            phone: existingLead.phone,
-            source: source + ' (Wiederholung)'
-          });
-          
-          return res.status(200).json({ 
-            success: true, 
-            message: "Lead registered",
-            leadId: existingLead.id 
-          });
-        }
-      }
-      
-      const lead = await storage.createLead(validatedData);
-      
-      console.log("New lead captured:", {
-        id: lead.id,
-        email: lead.email,
-        utmSource: lead.utmSource,
-        utmMedium: lead.utmMedium,
-        utmCampaign: lead.utmCampaign,
-        utmContent: lead.utmContent,
-      });
-      
-      // Send email notification
-      const source = req.body.source || (lead.utmSource ? `UTM: ${lead.utmSource}` : 'Quiz Funnel');
-      sendLeadNotification({
-        name: lead.name,
-        email: lead.email,
-        phone: lead.phone,
-        source: source
-      });
-      
-      res.status(201).json({ 
-        success: true, 
-        message: "Lead created successfully",
-        leadId: lead.id 
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Validation error",
-          errors: error.errors 
-        });
-      }
-      console.error("Error creating lead:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: "Internal server error" 
-      });
-    }
-  });
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY not configured');
+  }
+  return {
+    client: new Resend(apiKey),
+    fromEmail: process.env.RESEND_FROM_EMAIL || 'noreply@geheime-ki-klickmethode.de'
+  };
+}
 
-  // Get all leads (for admin purposes - could be protected later)
-  app.get("/api/leads", async (req, res) => {
-    try {
-      const leads = await storage.getLeads();
-      res.json(leads);
-    } catch (error) {
-      console.error("Error fetching leads:", error);
-      res.status(500).json({ 
-        success: false, 
-        message: "Internal server error" 
-      });
-    }
-  });
+interface LeadData {
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  source?: string;
+}
 
-  return httpServer;
+export async function sendLeadNotification(lead: LeadData) {
+  try {
+    const { client, fromEmail } = getResendClient();
+    
+    const emailContent = `
+Neuer Lead eingegangen!
+
+Name: ${lead.name}
+${lead.email ? `E-Mail: ${lead.email}` : ''}
+${lead.phone ? `Telefon: ${lead.phone}` : ''}
+Quelle: ${lead.source || 'Unbekannt'}
+
+---
+Automatisch gesendet von deinem KI-Klick Methode Funnel
+    `.trim();
+
+    const result = await client.emails.send({
+      from: fromEmail,
+      to: 'ki-klick-leads@web.de',
+      subject: `Neuer Lead: ${lead.name}`,
+      text: emailContent,
+    });
+
+    console.log(`Lead notification email result:`, JSON.stringify(result, null, 2));
+    console.log(`Lead notification email sent for: ${lead.name}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending lead notification email:', error);
+    return false;
+  }
 }
