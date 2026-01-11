@@ -99,12 +99,14 @@ export default function QuizLandingPage() {
     setFunnelState("disqualified");
   };
 
-  const handleFormSubmit = async (data: { name: string; email: string }) => {
+  const handleFormSubmit = async (data: { name: string; email: string; countryCode: string; phone: string }) => {
     setIsLoading(true);
     try {
+      const fullPhone = `${data.countryCode} ${data.phone}`;
       await apiRequest("POST", "/api/leads", {
         name: data.name,
         email: data.email,
+        phone: fullPhone,
         utmSource: utmParams.utmSource,
         utmMedium: utmParams.utmMedium,
         utmCampaign: utmParams.utmCampaign,
@@ -143,6 +145,7 @@ export default function QuizLandingPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      {/* Hero Section - Kompakt mit direktem CTA */}
       <section className="relative flex flex-col items-center justify-center px-3 pt-8 pb-3 sm:px-4 sm:pt-12 sm:pb-4 md:pt-16 md:pb-6 text-center overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] sm:w-[600px] h-[200px] sm:h-[300px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
         
@@ -172,6 +175,7 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
+      {/* Quiz Section - Der Hauptfokus mit Highlight */}
       <section ref={quizRef} className="py-6 sm:py-8 md:py-10 px-3 sm:px-4 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 pointer-events-none" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
@@ -194,6 +198,7 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
+      {/* Mini Social Proof - Direkt nach dem Quiz */}
       <section className="py-6 sm:py-8 px-3 sm:px-4 bg-muted/20">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center justify-center gap-1">
@@ -205,6 +210,7 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
+      {/* Benefits Section - Kompakt */}
       <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 md:mb-12">
@@ -227,6 +233,7 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
+      {/* System Section - Ohne CTA */}
       <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4 bg-muted/30">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -266,6 +273,7 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
+      {/* Final CTA - Einziger CTA nach Content */}
       <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4 bg-muted/30">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-3 sm:mb-4">
@@ -285,7 +293,8 @@ export default function QuizLandingPage() {
         </div>
       </section>
 
-            <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-border">
+      {/* Footer */}
+      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-border">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-4 sm:mb-6">
             <p className="text-[10px] sm:text-xs text-primary font-medium">© 2026 KI-Klick Methode</p>
