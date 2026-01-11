@@ -17,7 +17,7 @@ export default function DisqualifiedMessage() {
       </h2>
       
       <p className="text-lg text-foreground mb-8">
-        Wir haben auch eine Methode, die <span className="underline">perfekt</span> auf deine Situation zugeschnitten ist und mit der du sogar noch <span className="underline">einfacher</span> Geld verdienen kannst!
+        Als Dankeschön für deine Teilnahme schenken wir dir unser Buch „Mit Apps Geld verdienen“. Klicke einfach auf den Button um es anzufordern:
       </p>
 
       <Button
@@ -25,7 +25,7 @@ export default function DisqualifiedMessage() {
         onClick={handleClick}
         className="h-14 px-10 text-lg font-semibold uppercase tracking-wide"
       >
-        Jetzt Methode entdecken
+        Jetzt Buch kostenlos sichern
       </Button>
     </div>
   );
