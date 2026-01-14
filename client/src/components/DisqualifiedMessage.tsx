@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export default function DisqualifiedMessage() {
   const handleClick = () => {
-    window.open("https://moneten-wissen.de/mit-apps-geld-verdienen-ebook/?aff=Florianbenedict", "_blank");
+    window.open("https://www.digistore24.com/redir/453066/Florianbenedict/disq", "_blank");
   };
 
   return (
@@ -17,7 +17,7 @@ export default function DisqualifiedMessage() {
       </h2>
       
       <p className="text-lg text-foreground mb-8">
-        Als Dankeschön für deine Teilnahme schenken wir dir unser Buch „Mit Apps Geld verdienen“. Klicke einfach auf den Button um es anzufordern:
+        Wir haben ebenfalls eine <span className="underline">Methode die kostenlos ist</span>, um 300 - 1000 Euro im Monat nebenbei online dazu zu verdienen:
       </p>
 
       <Button
@@ -25,7 +25,7 @@ export default function DisqualifiedMessage() {
         onClick={handleClick}
         className="h-14 px-10 text-lg font-semibold uppercase tracking-wide"
       >
-        Jetzt Buch kostenlos sichern
+        Jetzt Methode entdecken
       </Button>
     </div>
   );
