@@ -4,6 +4,7 @@ import Quiz, { QuizAnswers } from "@/components/Quiz";
 import LeadForm from "@/components/LeadForm";
 import DisqualifiedMessage from "@/components/DisqualifiedMessage";
 import { useToast } from "@/hooks/use-toast";
+import { usePageView, trackEvent } from "@/hooks/useAnalytics";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, ChevronRight, Users, Star, TrendingUp, Clock, Target, Coins, GraduationCap, HeadphonesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -71,6 +72,8 @@ export default function QuizLandingPage() {
     utmTerm: null,
   });
 
+  usePageView('quiz-landing');
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setUtmParams({
@@ -93,10 +96,12 @@ export default function QuizLandingPage() {
   const handleQuizComplete = (answers: QuizAnswers) => {
     setQuizAnswers(answers);
     setFunnelState("form");
+    trackEvent('quiz_complete', { answers });
   };
 
   const handleDisqualify = () => {
     setFunnelState("disqualified");
+    trackEvent('quiz_disqualified');
   };
 
   const handleFormSubmit = async (data: { name: string; email: string; countryCode: string; phone: string }) => {
@@ -160,156 +165,4 @@ export default function QuizLandingPage() {
 
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 md:gap-4 text-muted-foreground text-[10px] sm:text-xs md:text-sm">
             <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary flex-shrink-0" />
-              <span>350+ erfolgreiche Partner</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary flex-shrink-0" />
-              <span>90% automatisiert</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary flex-shrink-0" />
-              <span>Keine Vorkenntnisse nötig</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quiz Section - Der Hauptfokus mit Highlight */}
-      <section ref={quizRef} className="py-6 sm:py-8 md:py-10 px-3 sm:px-4 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5 pointer-events-none" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
-        
-        <div className="relative z-10 max-w-4xl mx-auto">
-          <div className="bg-card/80 backdrop-blur-sm border border-primary/20 rounded-2xl p-4 sm:p-6 md:p-8 shadow-lg shadow-primary/5">
-            {funnelState === "quiz" && (
-              <Quiz onComplete={handleQuizComplete} onDisqualify={handleDisqualify} />
-            )}
-            {funnelState === "form" && (
-              <LeadForm onSubmit={handleFormSubmit} isLoading={isLoading} />
-            )}
-            {funnelState === "disqualified" && (
-              <div className="w-full">
-                <DisqualifiedMessage />
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Mini Social Proof - Direkt nach dem Quiz */}
-      <section className="py-6 sm:py-8 px-3 sm:px-4 bg-muted/20">
-        <div className="max-w-4xl mx-auto">
-          <div className="flex items-center justify-center gap-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-primary text-primary" />
-            ))}
-            <span className="ml-2 text-xs sm:text-sm text-muted-foreground">350+ zufriedene Partner</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Benefits Section - Kompakt */}
-      <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4">
-        <div className="max-w-6xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8 md:mb-12">
-            Das bekommst du als Partner
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
-            {benefits.map((benefit, index) => (
-              <Card key={index} className="border-border/50">
-                <CardContent className="p-3 sm:p-4 md:p-5 text-center">
-                  <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 sm:mb-3">
-                    <benefit.icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-sm sm:text-base mb-1">{benefit.title}</h3>
-                  <p className="text-xs sm:text-sm text-muted-foreground">{benefit.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* System Section - Ohne CTA */}
-      <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4 bg-muted/30">
-        <div className="max-w-5xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-            <div className="flex flex-col items-center text-center order-first lg:order-last">
-              <img 
-                src="/assets/WhatsApp_Image_2025-12-12_at_11.54.15_(1)_1765900281327.jpeg" 
-                alt="Florian Mehler"
-                className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full object-cover border-4 border-primary/30 mb-3 sm:mb-4"
-              />
-              <p className="text-base sm:text-lg text-foreground font-medium">Florian Mehler</p>
-              <p className="text-sm sm:text-base text-muted-foreground">Gründer der KI-Klick Methode</p>
-            </div>
-
-            <div className="order-last lg:order-first">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-4 sm:mb-5 text-center lg:text-left">
-                Das System für normale Angestellte
-              </h2>
-              <p className="text-sm sm:text-base text-foreground mb-4">
-                Baue dir neben deinem Job ein zweites Einkommen auf. Ohne verkaufen zu müssen oder ein eigenes Business von null zu starten.
-              </p>
-              <ul className="space-y-2 sm:space-y-3">
-                {[
-                  "Keine Vorerfahrung nötig",
-                  "Nur 1-2h Zeitaufwand pro Tag",
-                  "Von überall aus möglich",
-                  "Neben dem Job machbar",
-                  "Ohne dein Gesicht zu zeigen",
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center gap-2 sm:gap-3 text-sm sm:text-base text-foreground">
-                    <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA - Einziger CTA nach Content */}
-      <section className="py-10 sm:py-14 md:py-20 px-3 sm:px-4 bg-muted/30">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-3 sm:mb-4">
-            Bereit für den ersten Schritt?
-          </h2>
-          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-5 sm:mb-6">
-            Finde jetzt heraus, ob das System zu dir passt.
-          </p>
-          <Button
-            size="lg"
-            onClick={scrollToQuiz}
-            className="h-12 sm:h-14 px-8 sm:px-12 text-base sm:text-lg font-semibold w-full sm:w-auto touch-manipulation active:scale-[0.98] transition-transform"
-          >
-            <ChevronRight className="mr-2 h-5 w-5" />
-            Quiz starten
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-border">
-        <div className="max-w-3xl mx-auto text-center">
-          <div className="mb-4 sm:mb-6">
-            <p className="text-[10px] sm:text-xs text-primary font-medium">© 2026 KI-Klick Methode</p>
-            <p className="text-[10px] sm:text-xs text-primary">Alle Rechte vorbehalten.</p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">Impressum</a>
-            <span>|</span>
-            <a href="#" className="hover:text-foreground transition-colors">Datenschutzerklärung</a>
-            <span>|</span>
-            <a href="#" className="hover:text-foreground transition-colors">AGB</a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-}
+              <CheckCircle className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-primary flex
