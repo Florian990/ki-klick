@@ -33,7 +33,7 @@ export default function AdminStats() {
       const response = await fetch(`/api/analytics/stats?${params}`);
       if (response.ok) {
         const result = await response.json();
-        setData(result);
+        setData(result.data);
       }
     } catch (error) {
       console.error("Failed to fetch stats:", error);
