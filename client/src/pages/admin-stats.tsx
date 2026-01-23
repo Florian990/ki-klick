@@ -3,14 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, startOfDay, endOfDay, subDays, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfDay, endOfDay, subDays, endOfMonth } from "date-fns";
 import { de } from "date-fns/locale";
 import { CalendarIcon, Users, UserPlus, UserCheck, Mail, Play, CheckCircle, XCircle, BarChart3 } from "lucide-react";
 
 interface AnalyticsData {
-  totalVisitors: number;
+  totalPageViews: number;
   uniqueVisitors: number;
   returningVisitors: number;
+  newVisitors: number;
   leadsGenerated: number;
   quizStarted: number;
   quizCompleted: number;
@@ -161,8 +162,8 @@ export default function AdminStats() {
                       <Users className="w-6 h-6 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.totalVisitors}</p>
-                      <p className="text-sm text-gray-400">Besucher gesamt</p>
+                      <p className="text-2xl font-bold text-white">{data.totalPageViews}</p>
+                      <p className="text-sm text-gray-400">Seitenaufrufe</p>
                     </div>
                   </div>
                 </CardContent>
@@ -176,7 +177,7 @@ export default function AdminStats() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-white">{data.uniqueVisitors}</p>
-                      <p className="text-sm text-gray-400">Neue Besucher</p>
+                      <p className="text-sm text-gray-400">Einzigartige Besucher</p>
                     </div>
                   </div>
                 </CardContent>
