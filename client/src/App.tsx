@@ -2,16 +2,17 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import QuizLandingPage from "@/pages/quiz-landing";
+import QuizLanding from "@/pages/quiz-landing";
 import VSLPage from "@/pages/vsl";
+import AdminStats from "@/pages/admin-stats";
+import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={QuizLandingPage} />
+      <Route path="/" component={QuizLanding} />
       <Route path="/vsl" component={VSLPage} />
+      <Route path="/admin/stats" component={AdminStats} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -20,10 +21,8 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <Router />
+      <Toaster />
     </QueryClientProvider>
   );
 }
