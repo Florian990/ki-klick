@@ -1,45 +1,53 @@
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar, Users, UserPlus, UserCheck, Play, CheckCircle, XCircle, Mail, BarChart3, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, startOfDay, endOfDay, subDays, endOfMonth } from "date-fns";
-import { de } from "date-fns/locale";
-import { CalendarIcon, Users, UserPlus, UserCheck, Mail, Play, CheckCircle, XCircle, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-interface AnalyticsData {
+interface StatsData {
   totalPageViews: number;
   uniqueVisitors: number;
   returningVisitors: number;
   newVisitors: number;
-  leadsGenerated: number;
   quizStarted: number;
   quizCompleted: number;
   quizDisqualified: number;
+  quizStepCounts: Record<string, number>;
+  leadsGenerated: number;
 }
 
-export default function AdminStats() {
-  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 30));
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [data, setData] = useState<AnalyticsData | null>(null);
-  const [loading, setLoading] = useState(false);
+export default function AdminStatsPage() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const today = new Date();
+  const [startDate, setStartDate] = useState(() => {
+    const date = new Date();
+    date.setDate(date.getDate() - 30);
+    return date.toISOString().split('T')[0];
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return today.toISOString().split('T')[0];
+  });
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (start?: string, end?: string) => {
+    const startParam = start || startDate;
+    const endParam = end || endDate;
+    
+    setIsLoading(true);
+    setError(null);
     try {
-      const params = new URLSearchParams({
-        startDate: startOfDay(startDate).toISOString(),
-        endDate: endOfDay(endDate).toISOString(),
-      });
-      const response = await fetch(`/api/analytics/stats?${params}`);
-      if (response.ok) {
-        const result = await response.json();
-        setData(result.data);
+      const response = await fetch(`/api/analytics/stats?startDate=${startParam}&endDate=${endParam}`);
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.data);
+      } else {
+        setError('Fehler beim Laden der Statistiken');
       }
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
+    } catch (err) {
+      setError('Verbindungsfehler');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -47,223 +55,273 @@ export default function AdminStats() {
     fetchStats();
   }, []);
 
-  const setPresetRange = (preset: string) => {
-    const now = new Date();
-    switch (preset) {
-      case "today":
-        setStartDate(startOfDay(now));
-        setEndDate(endOfDay(now));
-        break;
-      case "7days":
-        setStartDate(subDays(now, 7));
-        setEndDate(now);
-        break;
-      case "30days":
-        setStartDate(subDays(now, 30));
-        setEndDate(now);
-        break;
-      case "january":
-        setStartDate(new Date(now.getFullYear(), 0, 1));
-        setEndDate(endOfMonth(new Date(now.getFullYear(), 0, 1)));
-        break;
-      case "december":
-        setStartDate(new Date(now.getFullYear() - 1, 11, 1));
-        setEndDate(endOfMonth(new Date(now.getFullYear() - 1, 11, 1)));
-        break;
-      case "november":
-        setStartDate(new Date(now.getFullYear() - 1, 10, 1));
-        setEndDate(endOfMonth(new Date(now.getFullYear() - 1, 10, 1)));
-        break;
+  const handleFilter = () => {
+    fetchStats();
+  };
+
+  const setPresetRange = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    if (days === 0) {
+      start.setHours(0, 0, 0, 0);
+    } else {
+      start.setDate(start.getDate() - days);
     }
+    const newStart = start.toISOString().split('T')[0];
+    const newEnd = end.toISOString().split('T')[0];
+    setStartDate(newStart);
+    setEndDate(newEnd);
+    fetchStats(newStart, newEnd);
+  };
+
+  const setMonth = (monthsAgo: number) => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+    const end = new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 0);
+    const newStart = start.toISOString().split('T')[0];
+    const newEnd = end.toISOString().split('T')[0];
+    setStartDate(newStart);
+    setEndDate(newEnd);
+    fetchStats(newStart, newEnd);
+  };
+
+  const getMonthName = (monthsAgo: number) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - monthsAgo);
+    return date.toLocaleString('de-DE', { month: 'long' });
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white p-6">
+    <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Statistiken</h1>
-        <p className="text-gray-400 mb-8">Übersicht über Besucher und Quiz-Performance</p>
+        <div className="mb-6 sm:mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">Statistiken</h1>
+            <p className="text-muted-foreground">Übersicht über Besucher und Quiz-Performance</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => fetchStats()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Aktualisieren
+          </Button>
+        </div>
 
-        {/* Date Range Selector */}
-        <Card className="bg-[#111] border-gray-800 mb-8">
+        <Card className="mb-6">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-white">
-              <CalendarIcon className="w-5 h-5" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Calendar className="h-5 w-5" />
               Zeitraum auswählen
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-2 mb-4">
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("today")}>Heute</Button>
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("7days")}>Letzte 7 Tage</Button>
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("30days")}>Letzte 30 Tage</Button>
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("january")}>Januar</Button>
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("december")}>Dezember</Button>
-              <Button variant="outline" size="sm" onClick={() => setPresetRange("november")}>November</Button>
+              <Button variant="outline" size="sm" onClick={() => setPresetRange(0)}>
+                Heute
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPresetRange(7)}>
+                Letzte 7 Tage
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setPresetRange(30)}>
+                Letzte 30 Tage
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setMonth(0)}>
+                {getMonthName(0)}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setMonth(1)}>
+                {getMonthName(1)}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setMonth(2)}>
+                {getMonthName(2)}
+              </Button>
             </div>
             
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-end gap-4">
               <div>
-                <label className="text-sm text-gray-400 block mb-1">Von</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(startDate, "dd.MM.yyyy", { locale: de })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-gray-700">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={(date) => date && setStartDate(date)}
-                      locale={de}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Von</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                />
               </div>
-              
               <div>
-                <label className="text-sm text-gray-400 block mb-1">Bis</label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-[180px] justify-start text-left font-normal">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(endDate, "dd.MM.yyyy", { locale: de })}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 bg-[#1a1a1a] border-gray-700">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={(date) => date && setEndDate(date)}
-                      locale={de}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <label className="block text-sm font-medium text-muted-foreground mb-1">Bis</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 border border-border rounded-md bg-background text-foreground"
+                />
               </div>
-
-              <Button onClick={fetchStats} className="mt-5 bg-amber-600 hover:bg-amber-700">
-                Filtern
+              <Button onClick={handleFilter} disabled={isLoading}>
+                {isLoading ? 'Laden...' : 'Filtern'}
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {loading ? (
-          <div className="text-center py-8">Lade Daten...</div>
-        ) : data ? (
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4 mb-6">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Lade Statistiken...</p>
+          </div>
+        ) : stats ? (
           <>
-            {/* Visitor Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <Users className="w-6 h-6 text-blue-500" />
+                    <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.totalPageViews}</p>
-                      <p className="text-sm text-gray-400">Seitenaufrufe</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.uniqueVisitors}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Besucher gesamt</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/20 rounded-lg">
-                      <UserPlus className="w-6 h-6 text-green-500" />
+                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <UserPlus className="h-5 w-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.uniqueVisitors}</p>
-                      <p className="text-sm text-gray-400">Einzigartige Besucher</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.newVisitors}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Neue Besucher</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-500/20 rounded-lg">
-                      <UserCheck className="w-6 h-6 text-purple-500" />
+                    <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center">
+                      <UserCheck className="h-5 w-5 text-purple-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.returningVisitors}</p>
-                      <p className="text-sm text-gray-400">Wiederkehrend</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.returningVisitors}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Wiederkehrend</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-amber-500/20 rounded-lg">
-                      <Mail className="w-6 h-6 text-amber-500" />
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.leadsGenerated}</p>
-                      <p className="text-sm text-gray-400">Leads generiert</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.leadsGenerated}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Leads generiert</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Quiz Stats */}
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
+            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
               Quiz-Statistiken
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-500/20 rounded-lg">
-                      <Play className="w-6 h-6 text-blue-500" />
+                    <div className="h-10 w-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                      <Play className="h-5 w-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.quizStarted}</p>
-                      <p className="text-sm text-gray-400">Quiz gestartet</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.quizStarted}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Quiz gestartet</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-green-500/20 rounded-lg">
-                      <CheckCircle className="w-6 h-6 text-green-500" />
+                    <div className="h-10 w-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.quizCompleted}</p>
-                      <p className="text-sm text-gray-400">Quiz abgeschlossen</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.quizCompleted}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Quiz abgeschlossen</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-[#111] border-gray-800">
-                <CardContent className="pt-6">
+              <Card>
+                <CardContent className="p-4 sm:p-6">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-red-500/20 rounded-lg">
-                      <XCircle className="w-6 h-6 text-red-500" />
+                    <div className="h-10 w-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                      <XCircle className="h-5 w-5 text-red-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white">{data.quizDisqualified}</p>
-                      <p className="text-sm text-gray-400">Disqualifiziert</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-foreground">{stats.quizDisqualified}</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Disqualifiziert</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {Object.keys(stats.quizStepCounts).length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Quiz-Schritte</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {Object.entries(stats.quizStepCounts)
+                      .sort(([a], [b]) => {
+                        const numA = parseInt(a.replace('quiz_step_', ''));
+                        const numB = parseInt(b.replace('quiz_step_', ''));
+                        return numA - numB;
+                      })
+                      .map(([step, count]) => {
+                        const stepNum = step.replace('quiz_step_', '');
+                        const percentage = stats.quizStarted > 0 ? Math.round((count / stats.quizStarted) * 100) : 0;
+                        return (
+                          <div key={step} className="flex items-center gap-4">
+                            <span className="text-sm font-medium w-24">Frage {stepNum}</span>
+                            <div className="flex-1 bg-muted rounded-full h-3">
+                              <div 
+                                className="bg-primary h-3 rounded-full transition-all"
+                                style={{ width: `${percentage}%` }}
+                              />
+                            </div>
+                            <span className="text-sm text-muted-foreground w-20 text-right">
+                              {count} ({percentage}%)
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </>
-        ) : (
-          <div className="text-center py-8 text-gray-400">Keine Daten verfügbar</div>
-        )}
+        ) : null}
       </div>
     </div>
   );
