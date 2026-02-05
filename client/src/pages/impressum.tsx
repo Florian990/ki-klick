@@ -45,8 +45,6 @@ export default function ImpressumPage() {
             <p>Keine Umsatzsteuer-Identifikationsnummer vorhanden, da Sitz außerhalb der EU.</p>
           </div>
 
-        
-          </div>
         </div>
       </div>
     </div>
