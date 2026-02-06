@@ -1,57 +1,58 @@
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
-function getVisitorId(): string {
-  const key = 'ki_visitor_id';
-  let visitorId = localStorage.getItem(key);
+const VISITOR_ID_KEY = 'ki_klick_visitor_id';
+
+function getOrCreateVisitorId(): string {
+  let visitorId = localStorage.getItem(VISITOR_ID_KEY);
   if (!visitorId) {
-    visitorId = 'v_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-    localStorage.setItem(key, visitorId);
+    visitorId = crypto.randomUUID();
+    localStorage.setItem(VISITOR_ID_KEY, visitorId);
   }
   return visitorId;
 }
 
-export function usePageView(page: string) {
-  const tracked = useRef(false);
-  
+export function useAnalytics() {
+  const visitorIdRef = useRef<string | null>(null);
+
   useEffect(() => {
-    if (tracked.current) return;
-    tracked.current = true;
-    
-    const visitorId = getVisitorId();
-    
-    fetch('/api/analytics/pageview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        visitorId,
-        page,
-        referrer: document.referrer || null,
-        userAgent: navigator.userAgent,
-      }),
-    }).catch(console.error);
-  }, [page]);
-}
+    visitorIdRef.current = getOrCreateVisitorId();
+  }, []);
 
-export function trackEvent(eventType: string, eventData?: Record<string, any>, page?: string) {
-  const visitorId = getVisitorId();
-  
-  fetch('/api/analytics/event', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      visitorId,
-      eventType,
-      eventData: eventData ? JSON.stringify(eventData) : null,
-      page: page || window.location.pathname,
-    }),
-  }).catch(console.error);
-}
+  const trackPageView = useCallback(async (page: string) => {
+    const visitorId = visitorIdRef.current || getOrCreateVisitorId();
+    try {
+      await fetch('/api/analytics/pageview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId,
+          page,
+          referrer: document.referrer || null,
+          userAgent: navigator.userAgent,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to track page view:', error);
+    }
+  }, []);
 
-export function useQuizTracking() {
-  return {
-    trackQuizStart: () => trackEvent('quiz_start'),
-    trackQuizStep: (step: number, answer: string) => trackEvent('quiz_step', { step, answer }),
-    trackQuizComplete: () => trackEvent('quiz_complete'),
-    trackQuizDisqualified: (step: number, answer: string) => trackEvent('quiz_disqualified', { step, answer }),
-  };
+  const trackEvent = useCallback(async (eventType: string, eventData?: Record<string, any>, page?: string) => {
+    const visitorId = visitorIdRef.current || getOrCreateVisitorId();
+    try {
+      await fetch('/api/analytics/event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          visitorId,
+          eventType,
+          eventData: eventData ? JSON.stringify(eventData) : null,
+          page: page || window.location.pathname,
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to track event:', error);
+    }
+  }, []);
+
+  return { trackPageView, trackEvent };
 }
