@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import Quiz, { QuizAnswers } from "@/components/Quiz";
 import LeadForm from "@/components/LeadForm";
 import DisqualifiedMessage from "@/components/DisqualifiedMessage";
 import { useToast } from "@/hooks/use-toast";
-import { usePageView, trackEvent } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/hooks/useAnalytics";
 import { apiRequest } from "@/lib/queryClient";
 import { CheckCircle, ChevronRight, Users, Star, TrendingUp, Clock, Target, Coins, GraduationCap, HeadphonesIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,6 +63,7 @@ export default function QuizLandingPage() {
   const [quizAnswers, setQuizAnswers] = useState<QuizAnswers>({});
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { trackPageView, trackEvent } = useAnalytics();
   const quizRef = useRef<HTMLDivElement>(null);
   const [utmParams, setUtmParams] = useState<UTMParams>({
     utmSource: null,
@@ -72,8 +72,6 @@ export default function QuizLandingPage() {
     utmContent: null,
     utmTerm: null,
   });
-
-  usePageView('quiz-landing');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -84,6 +82,8 @@ export default function QuizLandingPage() {
       utmContent: params.get("utm_content"),
       utmTerm: params.get("utm_term"),
     });
+
+    trackPageView('/');
 
     if (typeof window !== "undefined" && (window as any).fbq) {
       (window as any).fbq("track", "PageView");
@@ -310,7 +310,7 @@ export default function QuizLandingPage() {
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
             <a href="/impressum" className="hover:text-foreground transition-colors">Impressum</a>
             <span>|</span>
-            <a href="#" className="hover:text-foreground transition-colors">Datenschutzerklärung</a>
+            <a href="/datenschutz" className="hover:text-foreground transition-colors">Datenschutzerklärung</a>
             <span>|</span>
             <a href="#" className="hover:text-foreground transition-colors">AGB</a>
           </div>
