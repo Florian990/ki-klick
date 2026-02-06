@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { GraduationCap, Users, Briefcase, XCircle, Check, ChevronRight, ChevronLeft, Euro, Home, MapPin, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { trackEvent } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 export interface QuizAnswers {
   [questionId: number]: string;
@@ -97,8 +97,8 @@ export default function Quiz({ onComplete, onDisqualify }: QuizProps) {
   const [showFollowUp, setShowFollowUp] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
   const hasTrackedStart = useRef(false);
+  const { trackEvent } = useAnalytics();
 
-  const currentQuestions = showFollowUp ? [followUpQuestion] : questions;
   const currentQuestion = showFollowUp ? followUpQuestion : questions[currentStep];
   const totalSteps = showFollowUp ? 7 : 6;
   const displayStep = showFollowUp ? 7 : currentStep + 1;
