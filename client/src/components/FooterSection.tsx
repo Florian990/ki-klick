@@ -9,14 +9,14 @@ export default function FooterSection() {
           
           <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
             <a 
-              href="/impressum"
+              href="/impressum" 
               className="text-muted-foreground hover:text-foreground transition-colors"
               data-testid="link-impressum"
             >
               Impressum
             </a>
             <a 
-              href="#datenschutz" 
+              href="/datenschutz" 
               className="text-muted-foreground hover:text-foreground transition-colors"
               data-testid="link-datenschutz"
             >
