@@ -1,7 +1,7 @@
 import { CheckCircle, Play, Pause, Volume2, VolumeX, Calendar } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { usePageView, trackEvent } from "@/hooks/useAnalytics";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 declare global {
   interface Window {
@@ -20,10 +20,11 @@ export default function VSLPage() {
   const playerRef = useRef<any>(null);
   const expectedTimeRef = useRef<number>(0);
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  usePageView('vsl');
+  const { trackPageView, trackEvent } = useAnalytics();
 
   useEffect(() => {
+    trackPageView('/vsl');
+    
     const link = document.createElement('link');
     link.href = 'https://assets.calendly.com/assets/external/widget.css';
     link.rel = 'stylesheet';
@@ -351,7 +352,7 @@ export default function VSLPage() {
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-muted-foreground">
             <a href="/impressum" className="hover:text-foreground transition-colors">Impressum</a>
             <span>|</span>
-            <a href="#" className="hover:text-foreground transition-colors">Datenschutzerklärung</a>
+            <a href="/datenschutz" className="hover:text-foreground transition-colors">Datenschutzerklärung</a>
             <span>|</span>
             <a href="#" className="hover:text-foreground transition-colors">AGB</a>
           </div>
