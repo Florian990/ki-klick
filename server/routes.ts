@@ -35,7 +35,6 @@ export async function registerRoutes(
   // Lead capture endpoint
   app.post("/api/leads", async (req, res) => {
     try {
-      // Extract only the fields we need for the database
       const { name, email, phone, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, source, quizAnswers } = req.body;
       
       const validatedData = {
@@ -49,11 +48,9 @@ export async function registerRoutes(
         utmTerm: utmTerm || null,
       };
       
-      // Check if email already exists (only if email provided)
       if (validatedData.email) {
         const existingLead = await storage.getLeadByEmail(validatedData.email);
         if (existingLead) {
-          // Still send email notification for existing leads
           const leadSource = source || 'Quiz Funnel';
           sendLeadNotification({
             name: existingLead.name,
@@ -84,7 +81,6 @@ export async function registerRoutes(
       
       console.log("Quiz answers received:", JSON.stringify(quizAnswers));
       
-      // Send email notification
       const leadSource = source || (lead.utmSource ? `UTM: ${lead.utmSource}` : 'Quiz Funnel');
       sendLeadNotification({
         name: lead.name,
@@ -115,7 +111,6 @@ export async function registerRoutes(
     }
   });
 
-  // Get all leads (for admin purposes - could be protected later)
   app.get("/api/leads", async (req, res) => {
     try {
       const leads = await storage.getLeads();
@@ -129,7 +124,6 @@ export async function registerRoutes(
     }
   });
 
-  // Analytics: Track page view
   app.post("/api/analytics/pageview", async (req, res) => {
     try {
       const validatedData = insertPageViewSchema.parse(req.body);
@@ -144,7 +138,6 @@ export async function registerRoutes(
     }
   });
 
-  // Analytics: Track event
   app.post("/api/analytics/event", async (req, res) => {
     try {
       const validatedData = insertAnalyticsEventSchema.parse(req.body);
@@ -156,6 +149,39 @@ export async function registerRoutes(
       }
       console.error("Error tracking event:", error);
       res.status(500).json({ success: false });
+    }
+  });
+
+  // CSV Export: Download all leads as CSV (protected with Basic Auth)
+  app.get("/api/leads/export-csv", basicAuth, async (req, res) => {
+    try {
+      const leads = await storage.getLeads();
+      
+      const csvHeader = "ID,Name,Email,Telefon,UTM Source,UTM Medium,UTM Campaign,UTM Content,UTM Term,Erstellt am\n";
+      const csvRows = leads.map(lead => {
+        const createdAt = lead.createdAt ? new Date(lead.createdAt).toLocaleString('de-DE', { timeZone: 'Europe/Berlin' }) : '';
+        return [
+          lead.id,
+          `"${(lead.name || '').replace(/"/g, '""')}"`,
+          `"${(lead.email || '').replace(/"/g, '""')}"`,
+          `"${(lead.phone || '').replace(/"/g, '""')}"`,
+          `"${(lead.utmSource || '').replace(/"/g, '""')}"`,
+          `"${(lead.utmMedium || '').replace(/"/g, '""')}"`,
+          `"${(lead.utmCampaign || '').replace(/"/g, '""')}"`,
+          `"${(lead.utmContent || '').replace(/"/g, '""')}"`,
+          `"${(lead.utmTerm || '').replace(/"/g, '""')}"`,
+          `"${createdAt}"`
+        ].join(',');
+      }).join('\n');
+
+      const csv = csvHeader + csvRows;
+      
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="leads-export.csv"');
+      res.send('\uFEFF' + csv);
+    } catch (error) {
+      console.error("Error exporting leads:", error);
+      res.status(500).json({ success: false, message: "Export fehlgeschlagen" });
     }
   });
 
