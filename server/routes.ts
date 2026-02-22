@@ -35,6 +35,7 @@ export async function registerRoutes(
   // Lead capture endpoint
   app.post("/api/leads", async (req, res) => {
     try {
+      // Extract only the fields we need for the database
       const { name, email, phone, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, source, quizAnswers } = req.body;
       
       const validatedData = {
@@ -48,9 +49,11 @@ export async function registerRoutes(
         utmTerm: utmTerm || null,
       };
       
+      // Check if email already exists (only if email provided)
       if (validatedData.email) {
         const existingLead = await storage.getLeadByEmail(validatedData.email);
         if (existingLead) {
+          // Still send email notification for existing leads
           const leadSource = source || 'Quiz Funnel';
           sendLeadNotification({
             name: existingLead.name,
@@ -81,6 +84,7 @@ export async function registerRoutes(
       
       console.log("Quiz answers received:", JSON.stringify(quizAnswers));
       
+      // Send email notification
       const leadSource = source || (lead.utmSource ? `UTM: ${lead.utmSource}` : 'Quiz Funnel');
       sendLeadNotification({
         name: lead.name,
@@ -111,6 +115,7 @@ export async function registerRoutes(
     }
   });
 
+  // Get all leads (for admin purposes - could be protected later)
   app.get("/api/leads", async (req, res) => {
     try {
       const leads = await storage.getLeads();
@@ -124,6 +129,7 @@ export async function registerRoutes(
     }
   });
 
+  // Analytics: Track page view
   app.post("/api/analytics/pageview", async (req, res) => {
     try {
       const validatedData = insertPageViewSchema.parse(req.body);
@@ -138,6 +144,7 @@ export async function registerRoutes(
     }
   });
 
+  // Analytics: Track event
   app.post("/api/analytics/event", async (req, res) => {
     try {
       const validatedData = insertAnalyticsEventSchema.parse(req.body);
