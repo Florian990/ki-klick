@@ -173,9 +173,11 @@ export default function VSLPage() {
       <section className="py-6 sm:py-10 md:py-16 px-3 sm:px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-6 sm:mb-8 md:mb-10">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 sm:mb-5 px-2 leading-tight">
-              Wie du dir als Anfänger mit KI, ohne Vorkenntnisse ein seriöses und nachhaltiges Nebeneinkommen aufbauen kannst
-            </h1>
+            <div className="mb-4 sm:mb-5 px-2">
+              <span className="highlight-strong text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-foreground leading-relaxed">
+                Wie du dir als Anfänger mit KI, ohne Vorkenntnisse ein seriöses und nachhaltiges Nebeneinkommen aufbauen kannst
+              </span>
+            </div>
             <p className="text-base sm:text-lg md:text-xl text-primary font-semibold mb-2">
               Drücke jetzt auf Play
             </p>
@@ -197,7 +199,7 @@ export default function VSLPage() {
                 onClick={startVideo}
                 data-testid="button-play-video"
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
                 <div className="text-center relative z-10">
                   <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 mx-auto rounded-full bg-primary flex items-center justify-center transition-transform group-hover:scale-110 mb-3 sm:mb-4">
                     <Play className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary-foreground ml-1" />
@@ -280,9 +282,11 @@ export default function VSLPage() {
       {/* WhatsApp Testimonials Section */}
       <section className="py-10 sm:py-12 md:py-16 px-3 sm:px-4 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-foreground mb-6 sm:mb-8 md:mb-10">
-            Das sagen unsere Teilnehmer
-          </h2>
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <span className="highlight text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-relaxed">
+              Das sagen unsere Teilnehmer
+            </span>
+          </div>
           
           {/* WhatsApp Screenshots */}
           <div className="columns-2 sm:columns-3 gap-3 sm:gap-4 space-y-3 sm:space-y-4">
@@ -306,9 +310,11 @@ export default function VSLPage() {
       {/* Payout Screens Section */}
       <section className="py-10 sm:py-12 md:py-16 px-3 sm:px-4 border-t border-border">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-center text-foreground mb-6 sm:mb-8 md:mb-10">
-            Stell dir vor, dein Handybildschirm sieht bald so aus
-          </h2>
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <span className="highlight text-xl sm:text-2xl md:text-3xl font-bold text-foreground leading-relaxed">
+              Stell dir vor, dein Handybildschirm sieht bald so aus
+            </span>
+          </div>
           
           {/* Payout Screenshots */}
           <div className="columns-2 sm:columns-3 gap-3 sm:gap-4 space-y-3 sm:space-y-4">
@@ -329,20 +335,9 @@ export default function VSLPage() {
         </div>
       </section>
 
-      {/* Floating CTA for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 p-3 bg-background/95 backdrop-blur-sm border-t border-border sm:hidden z-50">
-        <Button
-          size="lg"
-          onClick={openCalendlyPopup}
-          className="w-full h-12 text-base font-semibold touch-manipulation active:scale-[0.98] transition-transform"
-        >
-          <Calendar className="mr-2 h-5 w-5" />
-          Jetzt für 10 Plätze bewerben
-        </Button>
-      </div>
 
       {/* Footer */}
-      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-border pb-20 sm:pb-8">
+      <footer className="py-6 sm:py-8 px-3 sm:px-4 border-t border-border">
         <div className="max-w-3xl mx-auto text-center">
           <div className="mb-4 sm:mb-6">
             <p className="text-[10px] sm:text-xs text-primary font-medium">© 2026 KI-Klick Methode</p>
